@@ -5,9 +5,11 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Middleware
 app.use(express.json({ limit: "2mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
+// AI Chat API
 app.post("/api/chat", async (req, res) => {
   try {
     const message = String(req.body?.message || "").trim();
@@ -38,7 +40,7 @@ app.post("/api/chat", async (req, res) => {
             {
               role: "system",
               content:
-                "You are XEVIRA AI, a helpful general-purpose AI assistant. Answer clearly and accurately. The founder of XEVIRA AI is Sunit Mahajan."
+                "You are XEVIRA AI, a helpful and intelligent AI assistant. Answer clearly, accurately and naturally. The founder of XEVIRA AI is Sunit Mahajan."
             },
             {
               role: "user",
@@ -53,20 +55,23 @@ app.post("/api/chat", async (req, res) => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error(data);
+      console.error("Groq API error:", data);
+
       return res.status(500).json({
-        error: "XEVIRA AI could not process the request."
+        error: "XEVIRA AI could not process your request."
       });
     }
 
+    const answer =
+      data.choices?.[0]?.message?.content ||
+      "Sorry, I couldn't generate an answer.";
+
     res.json({
-      text:
-        data.choices?.[0]?.message?.content ||
-        "I couldn't generate a response."
+      text: answer
     });
 
   } catch (error) {
-    console.error(error);
+    console.error("Server error:", error);
 
     res.status(500).json({
       error: "XEVIRA AI is temporarily unavailable."
@@ -74,10 +79,12 @@ app.post("/api/chat", async (req, res) => {
   }
 });
 
-app.get("*", (req, res) => {
+// Homepage
+app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-app.listen(PORT, () => {
-  console.log(`XEVIRA AI running on port ${PORT}`);
+// Start server
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`XEVIRA AI is running on port ${PORT}`);
 });
